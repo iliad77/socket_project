@@ -1,4 +1,4 @@
-import { Model, DataTypes } from "sequelize";
+import { Model, DataTypes, Sequelize } from "sequelize";
 import sequelize from "../sequelize";
 
 export class User extends Model {
@@ -7,20 +7,23 @@ export class User extends Model {
     public password!: string;
 }
 
-User.init(
-    {
-        id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
+export const Userinit = (sequelize: Sequelize) => {
+    User.init(
+        {
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
+            username: { type: DataTypes.STRING, allowNull: false },
+            password: { type: DataTypes.STRING, allowNull: false },
         },
-        username: { type: DataTypes.STRING, allowNull: false },
-        password: { type: DataTypes.STRING, allowNull: false },
-    },
-    {
-        sequelize,
-        modelName: "User",
-        tableName: "users",
-        timestamps: false,
-    }
-);
+        {
+            sequelize,
+            modelName: "User",
+            tableName: "users",
+            timestamps: false,
+        }
+    );
+    return User;
+};

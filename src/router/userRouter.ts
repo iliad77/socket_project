@@ -1,9 +1,10 @@
 import { Request, Response, Router } from "express";
-import { User } from "../models/user";
+import { User } from "../sequelize";
 import { IDmiddleware } from "../middlewares/IDmiddleware";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { AuthMiddleware } from "../middlewares/AuthMiddleware";
 dotenv.config();
 const { SECRET_TOKEN } = process.env;
 
@@ -11,16 +12,22 @@ console.log(SECRET_TOKEN);
 
 const router = Router();
 
-router.get("/allusers", async (request: Request, response: Response) => {
-    try {
-        const users = await User.findAll();
-        if (users.length === 0)
-            return response.status(404).json({ msg: "there is no any user" });
-        return response.status(200).json(users);
-    } catch (error) {
-        return response.json(error);
+router.get(
+    "/allusers",
+    AuthMiddleware,
+    async (request: Request, response: Response) => {
+        try {
+            const users = await User.findAll();
+            if (users.length === 0)
+                return response
+                    .status(404)
+                    .json({ msg: "there is no any user" });
+            return response.status(200).json(users);
+        } catch (error) {
+            return response.json(error);
+        }
     }
-});
+);
 
 router.get(
     "/user/:id",
@@ -45,20 +52,26 @@ router.post("/user", async (request: Request, response: Response) => {
         if (!username || !password)
             return response
                 .status(400)
-                .json({ msg: "all field must be provided" });
-        const user = await User.findOne({ where: { username: username } });
+                .json({ msg: "All fields must be provided" });
+
+        const user = await User.findOne({ where: { username } });
         if (user)
-            return response.status(400).json({ msg: "username already exist" });
-        const hash_pass = bcrypt.hash(password, 5);
-        const newUser = await User.create(
-            { username, hash_pass },
-            { returning: true }
-        );
+            return response
+                .status(400)
+                .json({ msg: "Username already exists" });
+
+        const hash_pass = await bcrypt.hash(password, 5);
+        const newUser = await User.create({ username, password: hash_pass });
+
         return response
             .status(200)
-            .json({ msg: `user ${newUser.username} created successfully` });
+            .json({ msg: `User ${newUser.username} created successfully` });
     } catch (error) {
-        return response.json(error);
+        console.error("Error creating user:", error);
+        return response.status(500).json({
+            msg: "Internal server error",
+            error: error instanceof Error ? error.message : String(error),
+        });
     }
 });
 
@@ -85,3 +98,5 @@ router.post("/login", async (request: Request, response: Response) => {
         return response.json(error);
     }
 });
+
+export default router;

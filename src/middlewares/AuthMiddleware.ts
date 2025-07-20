@@ -15,6 +15,7 @@ export function AuthMiddleware(
             return response.status(400).json({ msg: "you dont have access" });
         const decode = jwt.verify(token, process.env.SECRET_TOKEN!);
         (request as any).user = decode;
+        console.log((request as any).user);
         next();
     } catch (error) {
         if ((error as any).name === "TokenExpiredError")

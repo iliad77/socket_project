@@ -5,7 +5,7 @@ console.log(typeof process.env.DB_PASSWORD);
 console.log(process.env.DB_PASSWORD);
 
 import sequelize from "./sequelize";
-import { up } from "./migrations/v0_create_user_migration";
+import { up } from "./migrations/v0_create_message_migration";
 
 (async () => {
     try {
