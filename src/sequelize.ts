@@ -20,7 +20,7 @@ Messageinit(sequelize);
 
 User.hasMany(Message, { foreignKey: "senderID" });
 User.hasMany(Message, { foreignKey: "recieverID" });
-Message.belongsTo(User, { foreignKey: "senderID" });
+Message.belongsTo(User, { foreignKey: "senderID", as: "sender" });
 Message.belongsTo(User, { foreignKey: "recieverID" });
 
 export default sequelize;

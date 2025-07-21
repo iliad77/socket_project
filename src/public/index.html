@@ -19,6 +19,9 @@
                 gap: 10px;
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             }
+            .hidden {
+                display: none;
+            }
         </style>
         <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     </head>
@@ -31,14 +34,18 @@
             <div id="loginStatus"></div>
         </div>
         <ul id="messages"></ul>
-        <input type="text" id="toUser" placeholder="Send to username" />
+        <input
+            class="activity"
+            type="text"
+            id="toUser"
+            placeholder="Send to username"
+        />
         <button id="setTarget">Set</button>
         <button id="changeTarget">Change</button>
         <form id="form">
             <input id="msgID" type="text" placeholder="your message" />
             <button>Send</button>
         </form>
-        <ul></ul>
         <p class="activity"></p>
         <script defer src="app.js"></script>
     </body>

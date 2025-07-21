@@ -12,18 +12,57 @@ let targetuser = null;
 console.log("jwtoken:", jwtoken);
 console.log("loginPopup:", loginPopup);
 
-document.getElementById("setTarget").addEventListener("click", () => {
+const setButton = document.getElementById("setTarget");
+document.getElementById("setTarget").addEventListener("click", async () => {
     const input = document.getElementById("toUser").value.trim();
     if (input) {
         targetuser = input;
         document.getElementById("toUser").disabled = true;
+        activity.classList.add("hidden");
+        setButton.classList.add("hidden");
         alert(`message will sent to ${targetuser}`);
+        const user = await fetch(
+            `http://localhost:3000/api/v0/users/${targetuser}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("jwt")}`,
+                },
+            }
+        );
+        const userdata = await user.json();
+        console.log("userdata==", userdata);
+        console.log("user==", user);
+        if (!userdata.id || !user.ok) {
+            alert("target user not found!");
+            return;
+        }
+        const sender = localStorage.getItem("id");
+        const history = await fetch(
+            `http://localhost:3000/api/v0/messages/${sender}/${userdata.id}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${jwtoken}`,
+                },
+            }
+        );
+        const res = await history.json();
+
+        messages.innerHTML = "";
+        res.forEach((msg) => {
+            const li = document.createElement("li");
+            li.textContent = `${msg.sender.username} : ${msg.content}`;
+            messages.appendChild(li);
+        });
     }
 });
 
 document.getElementById("changeTarget").addEventListener("click", () => {
     targetuser = null;
     document.getElementById("toUser").disabled = false;
+    activity.classList.remove("hidden");
+    setButton.classList.remove("hidden");
 });
 
 loginBtn.addEventListener("click", async () => {
@@ -42,6 +81,7 @@ loginBtn.addEventListener("click", async () => {
     if (res.ok) {
         jwtoken = data.token;
         localStorage.setItem("jwt", jwtoken);
+        localStorage.setItem("id", data.user);
         loginPopup.style.display = "none";
     } else {
         loginStatus.textContent = data.msg || "Login failed";

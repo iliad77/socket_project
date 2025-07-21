@@ -8,6 +8,7 @@ import { Op } from "sequelize";
 import sequelize, { Message, User } from "./sequelize";
 import UserRouter from "./router/userRouter";
 import { AuthMiddleware } from "./middlewares/AuthMiddleware";
+import messageRouter from "./router/messages";
 
 dotenv.config();
 const app = express();
@@ -21,6 +22,7 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/v0", UserRouter);
+app.use("/api/v0", messageRouter);
 
 const PORT = process.env.PORT;
 const secret = process.env.SECRET_TOKEN;
@@ -57,12 +59,14 @@ io.on("connect", (socket) => {
 
     socket.on("message", async ({ to, message }) => {
         const targetSocketID = connectedSockets.get(to);
-        socket.emit("message", message);
+        socket.emit("message", `${username}:${message}`);
         if (targetSocketID) {
-            socket.to(targetSocketID).emit("message", message);
             const sender = await User.findOne({
                 where: { username: username },
             });
+            socket
+                .to(targetSocketID)
+                .emit("message", `${sender?.username}:${message}`);
             const reciever = await User.findOne({ where: { username: to } });
             await Message.create({
                 senderID: sender?.id,

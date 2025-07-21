@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { request, Request, Response, Router } from "express";
 import { User } from "../sequelize";
 import { IDmiddleware } from "../middlewares/IDmiddleware";
 import bcrypt from "bcrypt";
@@ -91,12 +91,29 @@ router.post("/login", async (request: Request, response: Response) => {
             return response.status(400).json({ msg: "password is incorrect" });
         const payload = { id: user.id, username: user.username };
         const token = jwt.sign(payload, SECRET_TOKEN!, { expiresIn: "20m" });
-        return response
-            .status(200)
-            .json({ msg: "you have logged in successfully", token: token });
+        return response.status(200).json({
+            msg: "you have logged in successfully",
+            token: token,
+            user: user.id,
+        });
     } catch (error) {
         return response.json(error);
     }
 });
+
+router.get(
+    "/users/:username",
+    AuthMiddleware,
+    async (request: Request, response: Response) => {
+        try {
+            const { username } = request.params;
+            console.log(username);
+            const user = await User.findOne({ where: { username: username } });
+            if (user) return response.json(user);
+        } catch (error) {
+            return response.json(error);
+        }
+    }
+);
 
 export default router;
